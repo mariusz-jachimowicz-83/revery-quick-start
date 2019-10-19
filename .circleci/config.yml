@@ -1,0 +1,41 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/my-revery-starter
+    docker:
+      - image: circleci/node:8.16
+    steps:
+      - checkout
+      - run:
+          name: "Checking Versions"
+          command: |
+            node --version
+            npm --version
+            cat /etc/os-release
+      # - run: apt-get update
+      - run: sudo apt-get install ragel curl
+      - run:
+          name: "Install required libs"
+          command: |
+            sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libegl1-mesa-dev mesa-utils mesa-utils-extra ragel libgtk-3-dev
+      - run:
+          name: "Setup environment variables"
+          command: |
+            echo 'export NPM_CONFIG_PREFIX="$HOME/.npm-global"' >> $BASH_ENV
+            echo 'export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"' >> $BASH_ENV
+            echo "export RELEASE_OS=$(uname | tr '[A-Z]' '[a-z]')" >> $BASH_ENV
+      # change global npm modules path. Without it there access error while intall esy globally
+      # - run: npm set prefix=/home/circleci/npm && echo 'export PATH=$HOME/circleci/npm/bin:$PATH' >> /home/circleci/.bashrc
+      - run:
+          name: "Npm install esy"
+          command: |
+            npm install -g esy@0.5.8
+      - run:
+          name: "Esy install"
+          command: |
+            esy '@js' install
+      - run:
+          name: "Esy build"
+          command: |
+            esy '@js' build      
